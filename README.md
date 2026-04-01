@@ -11,23 +11,23 @@ UI for VideoGenerator
 
 ## スクリプト
 
-### test_api.sh — Image-to-Video (I2V)
+### script/test_api.sh — Image-to-Video (I2V)
 
 1枚の画像からプロンプトに基づいて動画を生成する。
 
 ```bash
-./test_api.sh <画像パス> [プロンプト] [秒数]
+./script/test_api.sh <画像パス> [プロンプト] [秒数]
 ```
 
 | 引数 | 必須 | デフォルト | 説明 |
 |------|------|-----------|------|
-| 画像パス | 任意 | `../example_image.png` | 入力画像 |
+| 画像パス | 任意 | `example_image.png`（プロジェクトルート） | 入力画像 |
 | プロンプト | 任意 | `a girl in kimono gently picks up...` | 動作の指示 |
 | 秒数 | 任意 | `5` | 生成する動画の長さ（秒） |
 
 **例:**
 ```bash
-./test_api.sh input/akiko.jpg "女の子が手を振る" 3
+./script/test_api.sh input/akiko.jpg "女の子が手を振る" 3
 ```
 
 - 入力画像のアスペクト比を維持し、短辺480pxに自動リサイズ（16の倍数に補正）
@@ -35,12 +35,12 @@ UI for VideoGenerator
 
 ---
 
-### test_api_flf2v.sh — First-Last-Frame to Video (FLF2V)
+### script/test_api_flf2v.sh — First-Last-Frame to Video (FLF2V)
 
 開始画像と終了画像の2枚から、間を補間する動画を生成する。
 
 ```bash
-./test_api_flf2v.sh <開始画像> <終了画像> [プロンプト] [秒数]
+./script/test_api_flf2v.sh <開始画像> <終了画像> [プロンプト] [秒数]
 ```
 
 | 引数 | 必須 | デフォルト | 説明 |
@@ -52,7 +52,7 @@ UI for VideoGenerator
 
 **例:**
 ```bash
-./test_api_flf2v.sh input/start.jpg input/end.jpg "少女が立ち上がる" 4
+./script/test_api_flf2v.sh input/start.jpg input/end.jpg "少女が立ち上がる" 4
 ```
 
 - 開始画像のアスペクト比を基準に、短辺480pxに自動リサイズ（16の倍数に補正）
@@ -64,7 +64,8 @@ UI for VideoGenerator
 sky_ui/
 ├── input/          # 入力画像
 ├── output/         # 生成済み動画
-├── test_api.sh     # I2V テストスクリプト
-├── test_api_flf2v.sh # FLF2V テストスクリプト
+├── script/
+│   ├── test_api.sh       # I2V テストスクリプト
+│   └── test_api_flf2v.sh # FLF2V テストスクリプト
 └── README.md
 ```
