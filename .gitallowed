@@ -1,0 +1,1 @@
+API_KEY="${RUNPOD_API_KEY:?RUNPOD_API_KEY を設定してください}"
