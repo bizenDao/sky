@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SKY — Video Generator UI</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0f; color: #e0e0e0; min-height: 100vh; }
+.container { max-width: 900px; margin: 0 auto; padding: 24px; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; color: #8bb4ff; }
+
+/* Tabs */
+.tabs { display: flex; gap: 4px; margin-bottom: 24px; }
+.tab { padding: 10px 20px; background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 8px 8px 0 0; cursor: pointer; font-size: 0.9rem; color: #888; transition: all 0.2s; }
+.tab.active { background: #16213e; color: #8bb4ff; border-bottom-color: #16213e; }
+
+/* Form */
+.panel { background: #16213e; border: 1px solid #2a2a4a; border-radius: 0 8px 8px 8px; padding: 24px; display: none; }
+.panel.active { display: block; }
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 0.85rem; color: #8bb4ff; margin-bottom: 6px; }
+.field input[type="text"], .field textarea { width: 100%; padding: 10px; background: #0d1b2a; border: 1px solid #2a2a4a; border-radius: 6px; color: #e0e0e0; font-size: 0.9rem; }
+.field textarea { resize: vertical; min-height: 60px; }
+.field input[type="range"] { width: 100%; accent-color: #8bb4ff; }
+
+/* Drop zone */
+.drop-zone { border: 2px dashed #2a2a4a; border-radius: 8px; padding: 32px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; min-height: 120px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px; }
+.drop-zone:hover, .drop-zone.dragover { border-color: #8bb4ff; background: rgba(139,180,255,0.05); }
+.drop-zone img { max-width: 100%; max-height: 200px; border-radius: 4px; }
+.drop-zone input { display: none; }
+.drop-zone .placeholder { color: #555; font-size: 0.85rem; }
+
+/* Row */
+.row { display: flex; gap: 16px; }
+.row .field { flex: 1; }
+
+/* API settings */
+.api-settings { background: #0d1b2a; border: 1px solid #2a2a4a; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+.api-settings summary { cursor: pointer; color: #8bb4ff; font-size: 0.85rem; }
+.api-settings .fields { margin-top: 12px; display: flex; gap: 12px; }
+.api-settings input { flex: 1; padding: 8px; background: #16213e; border: 1px solid #2a2a4a; border-radius: 6px; color: #e0e0e0; font-size: 0.85rem; }
+
+/* Button */
+.submit-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #4a6fa5, #8bb4ff); border: none; border-radius: 8px; color: #fff; font-size: 1rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+.submit-btn:hover { opacity: 0.9; }
+.submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Log */
+.log-area { margin-top: 24px; background: #0d1b2a; border: 1px solid #2a2a4a; border-radius: 8px; padding: 16px; display: none; }
+.log-area h3 { font-size: 0.85rem; color: #8bb4ff; margin-bottom: 8px; }
+.log-area .log { font-family: 'SF Mono', Monaco, monospace; font-size: 0.8rem; color: #aaa; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+.log .error { color: #ff6b6b; }
+.log .success { color: #6bff9e; }
+
+/* Result */
+.result-area { margin-top: 16px; display: none; }
+.result-area video { width: 100%; border-radius: 8px; background: #000; }
+.download-btn { display: inline-block; margin-top: 8px; padding: 8px 16px; background: #2a4a2a; border: 1px solid #3a6a3a; border-radius: 6px; color: #6bff9e; text-decoration: none; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>SKY — Video Generator</h1>
+
+  <details class="api-settings" id="apiSettings">
+    <summary>API Settings</summary>
+    <div class="fields">
+      <input type="text" id="endpointId" placeholder="Endpoint ID">
+      <input type="password" id="apiKey" placeholder="API Key">
+    </div>
+  </details>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="i2v">I2V（画像→動画）</div>
+    <div class="tab" data-tab="flf2v">FLF2V（開始・終了画像→動画）</div>
+  </div>
+
+  <!-- I2V Panel -->
+  <div class="panel active" id="panel-i2v">
+    <div class="field">
+      <label>入力画像</label>
+      <div class="drop-zone" id="drop-i2v">
+        <input type="file" accept="image/*">
+        <span class="placeholder">クリックまたはドラッグ＆ドロップで画像を選択</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>プロンプト</label>
+      <textarea id="prompt-i2v" placeholder="a girl in kimono gently picks up a clay bowl..."></textarea>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>秒数: <span id="sec-val-i2v">5</span>秒</label>
+        <input type="range" id="seconds-i2v" min="1" max="10" value="5">
+      </div>
+      <div class="field">
+        <label>ステップ数</label>
+        <input type="text" id="steps-i2v" value="10">
+      </div>
+      <div class="field">
+        <label>CFG</label>
+        <input type="text" id="cfg-i2v" value="3.0">
+      </div>
+    </div>
+    <button class="submit-btn" onclick="submitJob('i2v')">生成開始</button>
+  </div>
+
+  <!-- FLF2V Panel -->
+  <div class="panel" id="panel-flf2v">
+    <div class="row">
+      <div class="field">
+        <label>開始画像</label>
+        <div class="drop-zone" id="drop-flf2v-start">
+          <input type="file" accept="image/*">
+          <span class="placeholder">開始フレーム</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>終了画像</label>
+        <div class="drop-zone" id="drop-flf2v-end">
+          <input type="file" accept="image/*">
+          <span class="placeholder">終了フレーム</span>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label>プロンプト</label>
+      <textarea id="prompt-flf2v" placeholder="the girl smoothly transitions from the first pose to the second pose"></textarea>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>秒数: <span id="sec-val-flf2v">5</span>秒</label>
+        <input type="range" id="seconds-flf2v" min="1" max="10" value="5">
+      </div>
+      <div class="field">
+        <label>ステップ数</label>
+        <input type="text" id="steps-flf2v" value="10">
+      </div>
+      <div class="field">
+        <label>CFG</label>
+        <input type="text" id="cfg-flf2v" value="3.0">
+      </div>
+    </div>
+    <button class="submit-btn" onclick="submitJob('flf2v')">生成開始</button>
+  </div>
+
+  <div class="log-area" id="logArea">
+    <h3>ログ</h3>
+    <div class="log" id="log"></div>
+  </div>
+
+  <div class="result-area" id="resultArea">
+    <video controls id="resultVideo"></video>
+    <a class="download-btn" id="downloadBtn" download="output.mp4">ダウンロード</a>
+  </div>
+</div>
+
+<script>
+// --- State ---
+const images = { 'i2v': null, 'flf2v-start': null, 'flf2v-end': null };
+let polling = null;
+
+// --- API settings persistence ---
+function loadSettings() {
+  const s = localStorage.getItem('sky_api');
+  if (s) {
+    const d = JSON.parse(s);
+    document.getElementById('endpointId').value = d.e || '';
+    document.getElementById('apiKey').value = d.k || '';
+  }
+}
+function saveSettings() {
+  localStorage.setItem('sky_api', JSON.stringify({
+    e: document.getElementById('endpointId').value,
+    k: document.getElementById('apiKey').value
+  }));
+}
+document.getElementById('endpointId').addEventListener('change', saveSettings);
+document.getElementById('apiKey').addEventListener('change', saveSettings);
+loadSettings();
+
+// --- Tabs ---
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+// --- Range sliders ---
+document.querySelectorAll('input[type="range"]').forEach(r => {
+  r.addEventListener('input', () => {
+    const id = r.id.replace('seconds-', 'sec-val-');
+    document.getElementById(id).textContent = r.value;
+  });
+});
+
+// --- Drop zones ---
+document.querySelectorAll('.drop-zone').forEach(zone => {
+  const input = zone.querySelector('input');
+  const key = zone.id.replace('drop-', '');
+
+  zone.addEventListener('click', () => input.click());
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    if (e.dataTransfer.files.length) handleFile(zone, key, e.dataTransfer.files[0]);
+  });
+  input.addEventListener('change', () => {
+    if (input.files.length) handleFile(zone, key, input.files[0]);
+  });
+});
+
+function handleFile(zone, key, file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    images[key] = e.target.result.split(',')[1]; // base64 without prefix
+    zone.innerHTML = `<img src="${e.target.result}">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+// --- Image dimension calc (canvas-based, matches shell script logic) ---
+function getResolution(base64) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (w < h) {
+        const nw = 480;
+        const nh = Math.round(h * 480 / w / 16) * 16;
+        resolve([nw, nh]);
+      } else {
+        const nh = 480;
+        const nw = Math.round(w * 480 / h / 16) * 16;
+        resolve([nw, nh]);
+      }
+    };
+    img.src = 'data:image/png;base64,' + base64;
+  });
+}
+
+// --- Logging ---
+function log(msg, cls) {
+  const area = document.getElementById('logArea');
+  const el = document.getElementById('log');
+  area.style.display = 'block';
+  const time = new Date().toLocaleTimeString('ja-JP');
+  const span = document.createElement('span');
+  if (cls) span.className = cls;
+  span.textContent = `[${time}] ${msg}\n`;
+  el.appendChild(span);
+  el.scrollTop = el.scrollHeight;
+}
+
+// --- Submit ---
+async function submitJob(mode) {
+  const endpointId = document.getElementById('endpointId').value.trim();
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if (!endpointId || !apiKey) {
+    document.getElementById('apiSettings').open = true;
+    alert('API Settings を入力してください');
+    return;
+  }
+
+  const seconds = parseInt(document.getElementById('seconds-' + mode).value);
+  const steps = parseInt(document.getElementById('steps-' + mode).value);
+  const cfg = parseFloat(document.getElementById('cfg-' + mode).value);
+  const prompt = document.getElementById('prompt-' + mode).value.trim();
+  const length = 16 * seconds + 1;
+
+  let inputData;
+
+  if (mode === 'i2v') {
+    if (!images['i2v']) { alert('画像を選択してください'); return; }
+    const [w, h] = await getResolution(images['i2v']);
+    log(`I2V: ${w}x${h}, ${seconds}秒 (${length}フレーム)`);
+    inputData = {
+      prompt, negative_prompt: 'blurry, low quality, distorted',
+      seed: 42, cfg, width: w, height: h, length, steps,
+      image_base64: images['i2v']
+    };
+  } else {
+    if (!images['flf2v-start'] || !images['flf2v-end']) {
+      alert('開始画像と終了画像を選択してください'); return;
+    }
+    const [w, h] = await getResolution(images['flf2v-start']);
+    log(`FLF2V: ${w}x${h}, ${seconds}秒 (${length}フレーム)`);
+    inputData = {
+      prompt, negative_prompt: 'blurry, low quality, distorted',
+      seed: 42, cfg, width: w, height: h, length, steps,
+      image_base64: images['flf2v-start'],
+      end_image_base64: images['flf2v-end']
+    };
+  }
+
+  const apiUrl = `https://api.runpod.ai/v2/${endpointId}`;
+  const btn = document.querySelector('#panel-' + mode + ' .submit-btn');
+  btn.disabled = true;
+  btn.textContent = '送信中...';
+  document.getElementById('resultArea').style.display = 'none';
+
+  try {
+    log('ジョブを投入中...');
+    const res = await fetch(apiUrl + '/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+      body: JSON.stringify({ input: inputData })
+    });
+    const data = await res.json();
+
+    if (!data.id) {
+      log('エラー: ジョブIDを取得できませんでした — ' + JSON.stringify(data), 'error');
+      btn.disabled = false; btn.textContent = '生成開始';
+      return;
+    }
+
+    log('ジョブID: ' + data.id);
+    pollStatus(apiUrl, apiKey, data.id, btn);
+  } catch (e) {
+    log('リクエストエラー: ' + e.message, 'error');
+    btn.disabled = false; btn.textContent = '生成開始';
+  }
+}
+
+// --- Poll ---
+function pollStatus(apiUrl, apiKey, jobId, btn) {
+  if (polling) clearInterval(polling);
+  log('完了を待機中...');
+
+  polling = setInterval(async () => {
+    try {
+      const res = await fetch(apiUrl + '/status/' + jobId, {
+        headers: { 'Authorization': 'Bearer ' + apiKey }
+      });
+      const data = await res.json();
+      log('ステータス: ' + data.status);
+
+      if (data.status === 'COMPLETED') {
+        clearInterval(polling);
+        log(`完了! 実行時間: ${data.executionTime}ms`, 'success');
+        showVideo(data.output.video);
+        btn.disabled = false; btn.textContent = '生成開始';
+      } else if (data.status === 'FAILED') {
+        clearInterval(polling);
+        log('ジョブ失敗: ' + JSON.stringify(data.error), 'error');
+        btn.disabled = false; btn.textContent = '生成開始';
+      }
+    } catch (e) {
+      log('ポーリングエラー: ' + e.message, 'error');
+    }
+  }, 10000);
+}
+
+// --- Show result ---
+function showVideo(base64) {
+  const blob = base64ToBlob(base64, 'video/mp4');
+  const url = URL.createObjectURL(blob);
+  const area = document.getElementById('resultArea');
+  const video = document.getElementById('resultVideo');
+  const dl = document.getElementById('downloadBtn');
+
+  video.src = url;
+  dl.href = url;
+  area.style.display = 'block';
+
+  // 自動ダウンロード
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'output_' + new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19) + '.mp4';
+  a.click();
+}
+
+function base64ToBlob(b64, type) {
+  const bin = atob(b64);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], { type });
+}
+</script>
+</body>
+</html>
