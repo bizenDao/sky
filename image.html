@@ -87,9 +87,9 @@ footer a:hover { text-decoration: underline; }
       </div>
     </div>
     <div class="setting-group">
-      <label>HiDream-I1 (generate_dream)</label>
+      <label>WAI-NSFW-Illustrious (generate_dream)</label>
       <div class="fields">
-        <input type="text" id="endpointHidream" placeholder="Endpoint ID (HiDream)">
+        <input type="text" id="endpointHidream" placeholder="Endpoint ID (WAI-NSFW)">
       </div>
     </div>
     <div class="setting-group">
@@ -103,7 +103,7 @@ footer a:hover { text-decoration: underline; }
   <div class="model-selector">
     <div class="model-btn active" data-model="pony">Momoiro Pony<span class="sub">score tags / CFG 7</span></div>
     <div class="model-btn" data-model="illustrious">Animagine 4.0<span class="sub">tag-based / CFG 5</span></div>
-    <div class="model-btn" data-model="hidream">HiDream-I1<span class="sub">natural lang / CFG 1</span></div>
+    <div class="model-btn" data-model="hidream">WAI-NSFW<span class="sub">illustrious / CFG 7</span></div>
   </div>
 
   <div class="panel">
@@ -179,7 +179,7 @@ let currentModel = 'pony';
 const MODEL_DEFAULTS = {
   pony:        { steps: 25, cfg: 7.0, hint: '品質タグ (score_9, score_8_up, score_7_up) は自動付与されます' },
   illustrious: { steps: 28, cfg: 5.0, hint: '品質タグ (masterpiece, high score, great score, absurdres) は自動付与されます' },
-  hidream:     { steps: 28, cfg: 1.0, hint: '品質タグなし。自然言語プロンプト推奨' }
+  hidream:     { steps: 25, cfg: 7.0, hint: '品質タグ (masterpiece, best quality, absurdres) は自動付与されます' }
 };
 
 // --- Model selector ---
