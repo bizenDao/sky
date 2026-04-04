@@ -43,7 +43,9 @@ h1 .nav a:hover { color: #c4a0ff; }
 /* API settings */
 .api-settings { background: #0d0b1a; border: 1px solid #2a2a4a; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
 .api-settings summary { cursor: pointer; color: #c4a0ff; font-size: 0.85rem; }
-.api-settings .fields { margin-top: 12px; display: flex; gap: 12px; }
+.api-settings .setting-group { margin-top: 12px; }
+.api-settings .setting-group label { display: block; font-size: 0.75rem; color: #888; margin-bottom: 4px; }
+.api-settings .fields { display: flex; gap: 12px; }
 .api-settings input { flex: 1; padding: 8px; background: #1e1a2e; border: 1px solid #2a2a4a; border-radius: 6px; color: #e0e0e0; font-size: 0.85rem; }
 
 /* Button */
@@ -77,18 +79,32 @@ footer a:hover { text-decoration: underline; }
 
   <details class="api-settings" id="apiSettings">
     <summary>API Settings</summary>
-    <div class="fields">
-      <label for="endpointId" class="sr-only">Endpoint ID</label>
-      <input type="text" id="endpointId" placeholder="Endpoint ID">
-      <label for="apiKey" class="sr-only">API Key</label>
-      <input type="password" id="apiKey" placeholder="API Key">
+    <div class="setting-group">
+      <label>txt2img (generate_dream)</label>
+      <div class="fields">
+        <label for="endpointTxt2img" class="sr-only">Endpoint ID (txt2img)</label>
+        <input type="text" id="endpointTxt2img" placeholder="Endpoint ID (txt2img)">
+      </div>
+    </div>
+    <div class="setting-group">
+      <label>edit (generate_dream_edit)</label>
+      <div class="fields">
+        <label for="endpointEdit" class="sr-only">Endpoint ID (edit)</label>
+        <input type="text" id="endpointEdit" placeholder="Endpoint ID (edit)">
+      </div>
+    </div>
+    <div class="setting-group">
+      <label>API Key (shared)</label>
+      <div class="fields">
+        <label for="apiKey" class="sr-only">API Key</label>
+        <input type="password" id="apiKey" placeholder="API Key">
+      </div>
     </div>
   </details>
 
-  <!-- edit tab disabled until E1.1 model is deployed -->
   <div class="tabs">
     <div class="tab active" data-tab="txt2img">txt2img（テキスト→画像）</div>
-    <div class="tab disabled" data-tab="edit" style="opacity:0.3;cursor:not-allowed;pointer-events:none;">edit（画像編集）※準備中</div>
+    <div class="tab" data-tab="edit">edit（画像編集）</div>
   </div>
 
   <!-- txt2img Panel -->
@@ -178,6 +194,8 @@ footer a:hover { text-decoration: underline; }
       <a href="https://github.com/bizendao/sky" target="_blank" rel="noopener noreferrer">GitHub</a>
       &nbsp;|&nbsp;
       <a href="https://github.com/bizendao/generate_dream" target="_blank" rel="noopener noreferrer">generate_dream</a>
+      &nbsp;|&nbsp;
+      <a href="https://github.com/bizendao/generate_dream_edit" target="_blank" rel="noopener noreferrer">generate_dream_edit</a>
     </p>
   </footer>
 </div>
@@ -192,17 +210,20 @@ function loadSettings() {
   const s = localStorage.getItem('sky_api_dream');
   if (s) {
     const d = JSON.parse(s);
-    document.getElementById('endpointId').value = d.e || '';
+    document.getElementById('endpointTxt2img').value = d.et || '';
+    document.getElementById('endpointEdit').value = d.ee || '';
     document.getElementById('apiKey').value = d.k || '';
   }
 }
 function saveSettings() {
   localStorage.setItem('sky_api_dream', JSON.stringify({
-    e: document.getElementById('endpointId').value,
+    et: document.getElementById('endpointTxt2img').value,
+    ee: document.getElementById('endpointEdit').value,
     k: document.getElementById('apiKey').value
   }));
 }
-document.getElementById('endpointId').addEventListener('change', saveSettings);
+document.getElementById('endpointTxt2img').addEventListener('change', saveSettings);
+document.getElementById('endpointEdit').addEventListener('change', saveSettings);
 document.getElementById('apiKey').addEventListener('change', saveSettings);
 loadSettings();
 
@@ -264,8 +285,11 @@ function log(msg, cls) {
 
 // --- Submit ---
 async function submitJob(mode) {
-  const endpointId = document.getElementById('endpointId').value.trim();
   const apiKey = document.getElementById('apiKey').value.trim();
+  const endpointId = mode === 'txt2img'
+    ? document.getElementById('endpointTxt2img').value.trim()
+    : document.getElementById('endpointEdit').value.trim();
+
   if (!endpointId || !apiKey) {
     document.getElementById('apiSettings').open = true;
     alert('API Settings を入力してください');
@@ -345,7 +369,7 @@ function pollStatus(apiUrl, apiKey, jobId, btn, mode) {
 
       if (data.status === 'COMPLETED') {
         clearInterval(polling);
-        log(`完了! 実行時間: ${data.executionTime}ms (mode: ${data.output.mode})`, 'success');
+        log(`完了! 実行時間: ${data.executionTime}ms`, 'success');
         showImage(data.output.image);
         btn.disabled = false; btn.textContent = mode === 'txt2img' ? '生成開始' : '編集開始';
       } else if (data.status === 'FAILED') {
