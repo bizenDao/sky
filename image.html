@@ -83,13 +83,13 @@ footer a:hover { text-decoration: underline; }
     <div class="setting-group">
       <label>Animagine XL 4.0 (generate_pict)</label>
       <div class="fields">
-        <input type="text" id="endpointIllustrious" placeholder="Endpoint ID (Animagine)">
+        <input type="text" id="endpointAnimagine" placeholder="Endpoint ID (Animagine)">
       </div>
     </div>
     <div class="setting-group">
       <label>WAI-NSFW-Illustrious (generate_dream)</label>
       <div class="fields">
-        <input type="text" id="endpointHidream" placeholder="Endpoint ID (WAI-NSFW)">
+        <input type="text" id="endpointWai" placeholder="Endpoint ID (WAI-NSFW)">
       </div>
     </div>
     <div class="setting-group">
@@ -102,8 +102,8 @@ footer a:hover { text-decoration: underline; }
 
   <div class="model-selector">
     <div class="model-btn active" data-model="pony">Momoiro Pony<span class="sub">score tags / CFG 7</span></div>
-    <div class="model-btn" data-model="illustrious">Animagine 4.0<span class="sub">tag-based / CFG 5</span></div>
-    <div class="model-btn" data-model="hidream">WAI-NSFW<span class="sub">illustrious / CFG 7</span></div>
+    <div class="model-btn" data-model="animagine">Animagine 4.0<span class="sub">tag-based / CFG 5</span></div>
+    <div class="model-btn" data-model="wai">WAI-NSFW<span class="sub">illustrious / CFG 7</span></div>
   </div>
 
   <div class="panel">
@@ -178,8 +178,8 @@ let currentModel = 'pony';
 
 const MODEL_DEFAULTS = {
   pony:        { steps: 25, cfg: 7.0, hint: '品質タグ (score_9, score_8_up, score_7_up) は自動付与されます' },
-  illustrious: { steps: 28, cfg: 5.0, hint: '品質タグ (masterpiece, high score, great score, absurdres) は自動付与されます' },
-  hidream:     { steps: 25, cfg: 7.0, hint: '品質タグ (masterpiece, best quality, absurdres) は自動付与されます' }
+  animagine:   { steps: 28, cfg: 5.0, hint: '品質タグ (masterpiece, high score, great score, absurdres) は自動付与されます' },
+  wai:         { steps: 25, cfg: 7.0, hint: '品質タグ (masterpiece, best quality, absurdres) は自動付与されます' }
 };
 
 // --- Model selector ---
@@ -202,22 +202,22 @@ function loadSettings() {
   if (s) {
     const d = JSON.parse(s);
     document.getElementById('endpointPony').value = d.ep || '';
-    document.getElementById('endpointIllustrious').value = d.ei || '';
-    document.getElementById('endpointHidream').value = d.eh || '';
+    document.getElementById('endpointAnimagine').value = d.ea || '';
+    document.getElementById('endpointWai').value = d.ew || '';
     document.getElementById('apiKey').value = d.k || '';
   }
 }
 function saveSettings() {
   localStorage.setItem('sky_api_image_v3', JSON.stringify({
     ep: document.getElementById('endpointPony').value,
-    ei: document.getElementById('endpointIllustrious').value,
-    eh: document.getElementById('endpointHidream').value,
+    ea: document.getElementById('endpointAnimagine').value,
+    ew: document.getElementById('endpointWai').value,
     k: document.getElementById('apiKey').value
   }));
 }
 document.getElementById('endpointPony').addEventListener('change', saveSettings);
-document.getElementById('endpointIllustrious').addEventListener('change', saveSettings);
-document.getElementById('endpointHidream').addEventListener('change', saveSettings);
+document.getElementById('endpointAnimagine').addEventListener('change', saveSettings);
+document.getElementById('endpointWai').addEventListener('change', saveSettings);
 document.getElementById('apiKey').addEventListener('change', saveSettings);
 loadSettings();
 
@@ -247,8 +247,8 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   const apiKey = document.getElementById('apiKey').value.trim();
   const endpointMap = {
     pony: 'endpointPony',
-    illustrious: 'endpointIllustrious',
-    hidream: 'endpointHidream'
+    animagine: 'endpointAnimagine',
+    wai: 'endpointWai'
   };
   const endpointId = document.getElementById(endpointMap[currentModel]).value.trim();
 
