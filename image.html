@@ -14,6 +14,7 @@ h1 { font-size: 1.5rem; margin-bottom: 24px; color: #8bb4ff; }
 h1 .nav { font-size: 0.85rem; margin-left: 12px; }
 h1 .nav a { color: #555; text-decoration: none; margin: 0 4px; }
 h1 .nav a:hover { color: #8bb4ff; }
+h1 .badge { font-size: 0.7rem; background: #2a3a5a; padding: 2px 8px; border-radius: 4px; color: #8bb4ff; vertical-align: middle; margin-left: 8px; }
 
 /* Form */
 .panel { background: #16213e; border: 1px solid #2a2a4a; border-radius: 8px; padding: 24px; }
@@ -22,13 +23,7 @@ h1 .nav a:hover { color: #8bb4ff; }
 .field input[type="text"], .field textarea { width: 100%; padding: 10px; background: #0d1b2a; border: 1px solid #2a2a4a; border-radius: 6px; color: #e0e0e0; font-size: 0.9rem; }
 .field textarea { resize: vertical; min-height: 60px; }
 .field input[type="range"] { width: 100%; accent-color: #8bb4ff; }
-
-/* Drop zone */
-.drop-zone { border: 2px dashed #2a2a4a; border-radius: 8px; padding: 32px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; min-height: 120px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px; }
-.drop-zone:hover, .drop-zone.dragover { border-color: #8bb4ff; background: rgba(139,180,255,0.05); }
-.drop-zone img { max-width: 100%; max-height: 200px; border-radius: 4px; }
-.drop-zone input { display: none; }
-.drop-zone .placeholder { color: #555; font-size: 0.85rem; }
+.field .hint { font-size: 0.75rem; color: #555; margin-top: 4px; }
 
 /* Row */
 .row { display: flex; gap: 16px; }
@@ -65,7 +60,9 @@ footer a:hover { text-decoration: underline; }
 </head>
 <body>
 <div class="container">
-  <h1>SKY — Image Generator <span class="nav"><a href="index.html">Video</a> <a href="dream.html">Dream</a></span></h1>
+  <h1>SKY — Image Generator <span class="badge">Pony V6 XL</span>
+    <span class="nav"><a href="index.html">Video</a> <a href="dream.html">Dream</a></span>
+  </h1>
 
   <details class="api-settings" id="apiSettings">
     <summary>API Settings</summary>
@@ -79,19 +76,13 @@ footer a:hover { text-decoration: underline; }
 
   <div class="panel">
     <div class="field">
-      <label for="file-ref">参照画像</label>
-      <div class="drop-zone" id="drop-ref">
-        <input type="file" id="file-ref" accept="image/*">
-        <span class="placeholder">クリックまたはドラッグ＆ドロップで参照画像を選択</span>
-      </div>
-    </div>
-    <div class="field">
       <label for="prompt">プロンプト</label>
-      <textarea id="prompt" placeholder="a beautiful portrait in watercolor style..."></textarea>
+      <textarea id="prompt" placeholder="1girl, blue hair, cherry blossoms, garden, detailed illustration..."></textarea>
+      <div class="hint">品質タグ (score_9, score_8_up, score_7_up) は自動付与されます</div>
     </div>
     <div class="field">
       <label for="negative">ネガティブプロンプト</label>
-      <textarea id="negative" placeholder="lowres, bad anatomy, blurry..."></textarea>
+      <textarea id="negative" placeholder="score_1, score_2, lowres, bad anatomy, blurry..."></textarea>
     </div>
     <div class="row">
       <div class="field">
@@ -104,7 +95,7 @@ footer a:hover { text-decoration: underline; }
       </div>
       <div class="field">
         <label for="steps">ステップ数</label>
-        <input type="text" id="steps" value="20">
+        <input type="text" id="steps" value="25">
       </div>
       <div class="field">
         <label for="seed">シード</label>
@@ -113,12 +104,8 @@ footer a:hover { text-decoration: underline; }
     </div>
     <div class="row">
       <div class="field">
-        <label for="guidance">ガイダンス: <span id="guidance-val">3.5</span></label>
-        <input type="range" id="guidance" min="0" max="10" step="0.5" value="3.5">
-      </div>
-      <div class="field">
-        <label for="ip-weight">IP-Adapter重み: <span id="ip-weight-val">0.8</span></label>
-        <input type="range" id="ip-weight" min="0" max="2" step="0.1" value="0.8">
+        <label for="cfg">CFG: <span id="cfg-val">7.0</span></label>
+        <input type="range" id="cfg" min="1" max="15" step="0.5" value="7.0">
       </div>
       <div class="field">
         <label for="quality">JPEG品質: <span id="quality-val">90</span></label>
@@ -150,10 +137,9 @@ footer a:hover { text-decoration: underline; }
 
 <script>
 // --- State ---
-let refImage = null;
 let polling = null;
 
-// --- API settings persistence (shared with video UI) ---
+// --- API settings persistence ---
 function loadSettings() {
   const s = localStorage.getItem('sky_api_image');
   if (s) {
@@ -180,31 +166,6 @@ document.querySelectorAll('input[type="range"]').forEach(r => {
   });
 });
 
-// --- Drop zone ---
-const zone = document.getElementById('drop-ref');
-const fileInput = document.getElementById('file-ref');
-
-zone.addEventListener('click', () => fileInput.click());
-zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
-zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
-zone.addEventListener('drop', e => {
-  e.preventDefault();
-  zone.classList.remove('dragover');
-  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
-});
-fileInput.addEventListener('change', () => {
-  if (fileInput.files.length) handleFile(fileInput.files[0]);
-});
-
-function handleFile(file) {
-  const reader = new FileReader();
-  reader.onload = e => {
-    refImage = e.target.result.split(',')[1];
-    zone.innerHTML = `<img src="${e.target.result}">`;
-  };
-  reader.readAsDataURL(file);
-}
-
 // --- Logging ---
 function log(msg, cls) {
   const area = document.getElementById('logArea');
@@ -227,10 +188,6 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
     alert('API Settings を入力してください');
     return;
   }
-  if (!refImage) {
-    alert('参照画像を選択してください');
-    return;
-  }
 
   const prompt = document.getElementById('prompt').value.trim();
   if (!prompt) { alert('プロンプトを入力してください'); return; }
@@ -238,13 +195,11 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   const inputData = {
     prompt,
     negative_prompt: document.getElementById('negative').value.trim() || undefined,
-    image_base64: refImage,
     width: parseInt(document.getElementById('width').value),
     height: parseInt(document.getElementById('height').value),
     steps: parseInt(document.getElementById('steps').value),
     seed: parseInt(document.getElementById('seed').value),
-    guidance: parseFloat(document.getElementById('guidance').value),
-    ip_adapter_weight: parseFloat(document.getElementById('ip-weight').value),
+    cfg: parseFloat(document.getElementById('cfg').value),
     quality: parseInt(document.getElementById('quality').value)
   };
 
@@ -254,7 +209,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   btn.textContent = '送信中...';
   document.getElementById('resultArea').style.display = 'none';
 
-  log(`${inputData.width}x${inputData.height}, steps=${inputData.steps}, guidance=${inputData.guidance}, ip_weight=${inputData.ip_adapter_weight}`);
+  log(`${inputData.width}x${inputData.height}, steps=${inputData.steps}, cfg=${inputData.cfg}`);
 
   try {
     log('ジョブを投入中...');
@@ -318,10 +273,9 @@ function showImage(dataUrl) {
   dl.href = dataUrl;
   area.style.display = 'block';
 
-  // 自動ダウンロード
   const a = document.createElement('a');
   a.href = dataUrl;
-  a.download = 'output_' + new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19) + '.jpg';
+  a.download = 'pony_' + new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19) + '.jpg';
   a.click();
 }
 </script>
