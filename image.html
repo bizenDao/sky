@@ -87,6 +87,12 @@ footer a:hover { text-decoration: underline; }
       </div>
     </div>
     <div class="setting-group">
+      <label>HiDream-I1 (generate_dream)</label>
+      <div class="fields">
+        <input type="text" id="endpointHidream" placeholder="Endpoint ID (HiDream)">
+      </div>
+    </div>
+    <div class="setting-group">
       <label>API Key (shared)</label>
       <div class="fields">
         <input type="password" id="apiKey" placeholder="API Key">
@@ -97,6 +103,7 @@ footer a:hover { text-decoration: underline; }
   <div class="model-selector">
     <div class="model-btn active" data-model="pony">Pony V6 XL<span class="sub">score tags / CFG 7</span></div>
     <div class="model-btn" data-model="illustrious">Illustrious v2.0<span class="sub">danbooru tags / CFG 6</span></div>
+    <div class="model-btn" data-model="hidream">HiDream-I1<span class="sub">natural lang / CFG 1</span></div>
   </div>
 
   <div class="panel">
@@ -158,6 +165,8 @@ footer a:hover { text-decoration: underline; }
       <a href="https://github.com/bizendao/generate_image" target="_blank" rel="noopener noreferrer">generate_image</a>
       &nbsp;|&nbsp;
       <a href="https://github.com/bizendao/generate_pict" target="_blank" rel="noopener noreferrer">generate_pict</a>
+      &nbsp;|&nbsp;
+      <a href="https://github.com/bizendao/generate_dream" target="_blank" rel="noopener noreferrer">generate_dream</a>
     </p>
   </footer>
 </div>
@@ -169,7 +178,8 @@ let currentModel = 'pony';
 
 const MODEL_DEFAULTS = {
   pony:        { steps: 25, cfg: 7.0, hint: '品質タグ (score_9, score_8_up, score_7_up) は自動付与されます' },
-  illustrious: { steps: 28, cfg: 6.0, hint: '品質タグ (masterpiece, best quality, absurdres) は自動付与されます' }
+  illustrious: { steps: 28, cfg: 6.0, hint: '品質タグ (masterpiece, best quality, absurdres) は自動付与されます' },
+  hidream:     { steps: 28, cfg: 1.0, hint: '品質タグなし。自然言語プロンプト推奨' }
 };
 
 // --- Model selector ---
@@ -188,23 +198,26 @@ document.querySelectorAll('.model-btn').forEach(btn => {
 
 // --- API settings persistence ---
 function loadSettings() {
-  const s = localStorage.getItem('sky_api_image_v2');
+  const s = localStorage.getItem('sky_api_image_v3');
   if (s) {
     const d = JSON.parse(s);
     document.getElementById('endpointPony').value = d.ep || '';
     document.getElementById('endpointIllustrious').value = d.ei || '';
+    document.getElementById('endpointHidream').value = d.eh || '';
     document.getElementById('apiKey').value = d.k || '';
   }
 }
 function saveSettings() {
-  localStorage.setItem('sky_api_image_v2', JSON.stringify({
+  localStorage.setItem('sky_api_image_v3', JSON.stringify({
     ep: document.getElementById('endpointPony').value,
     ei: document.getElementById('endpointIllustrious').value,
+    eh: document.getElementById('endpointHidream').value,
     k: document.getElementById('apiKey').value
   }));
 }
 document.getElementById('endpointPony').addEventListener('change', saveSettings);
 document.getElementById('endpointIllustrious').addEventListener('change', saveSettings);
+document.getElementById('endpointHidream').addEventListener('change', saveSettings);
 document.getElementById('apiKey').addEventListener('change', saveSettings);
 loadSettings();
 
@@ -232,9 +245,12 @@ function log(msg, cls) {
 // --- Submit ---
 document.getElementById('submitBtn').addEventListener('click', async () => {
   const apiKey = document.getElementById('apiKey').value.trim();
-  const endpointId = currentModel === 'pony'
-    ? document.getElementById('endpointPony').value.trim()
-    : document.getElementById('endpointIllustrious').value.trim();
+  const endpointMap = {
+    pony: 'endpointPony',
+    illustrious: 'endpointIllustrious',
+    hidream: 'endpointHidream'
+  };
+  const endpointId = document.getElementById(endpointMap[currentModel]).value.trim();
 
   if (!endpointId || !apiKey) {
     document.getElementById('apiSettings').open = true;
@@ -326,7 +342,7 @@ function showImage(dataUrl) {
   dl.href = dataUrl;
   area.style.display = 'block';
 
-  const prefix = currentModel === 'pony' ? 'pony' : 'illustrious';
+  const prefix = currentModel;
   const a = document.createElement('a');
   a.href = dataUrl;
   a.download = prefix + '_' + new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19) + '.jpg';
