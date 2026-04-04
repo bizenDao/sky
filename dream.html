@@ -4,28 +4,34 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>SKY — Image Generator UI</title>
+<title>SKY — Dream Generator UI</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0f; color: #e0e0e0; min-height: 100vh; }
 .container { max-width: 900px; margin: 0 auto; padding: 24px; }
-h1 { font-size: 1.5rem; margin-bottom: 24px; color: #8bb4ff; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; color: #c4a0ff; }
 h1 .nav { font-size: 0.85rem; margin-left: 12px; }
 h1 .nav a { color: #555; text-decoration: none; margin: 0 4px; }
-h1 .nav a:hover { color: #8bb4ff; }
+h1 .nav a:hover { color: #c4a0ff; }
+
+/* Tabs */
+.tabs { display: flex; gap: 4px; margin-bottom: 24px; }
+.tab { padding: 10px 20px; background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 8px 8px 0 0; cursor: pointer; font-size: 0.9rem; color: #888; transition: all 0.2s; }
+.tab.active { background: #1e1a2e; color: #c4a0ff; border-bottom-color: #1e1a2e; }
 
 /* Form */
-.panel { background: #16213e; border: 1px solid #2a2a4a; border-radius: 8px; padding: 24px; }
+.panel { background: #1e1a2e; border: 1px solid #2a2a4a; border-radius: 0 8px 8px 8px; padding: 24px; display: none; }
+.panel.active { display: block; }
 .field { margin-bottom: 16px; }
-.field label { display: block; font-size: 0.85rem; color: #8bb4ff; margin-bottom: 6px; }
-.field input[type="text"], .field textarea { width: 100%; padding: 10px; background: #0d1b2a; border: 1px solid #2a2a4a; border-radius: 6px; color: #e0e0e0; font-size: 0.9rem; }
+.field label { display: block; font-size: 0.85rem; color: #c4a0ff; margin-bottom: 6px; }
+.field input[type="text"], .field textarea { width: 100%; padding: 10px; background: #0d0b1a; border: 1px solid #2a2a4a; border-radius: 6px; color: #e0e0e0; font-size: 0.9rem; }
 .field textarea { resize: vertical; min-height: 60px; }
-.field input[type="range"] { width: 100%; accent-color: #8bb4ff; }
+.field input[type="range"] { width: 100%; accent-color: #c4a0ff; }
 
 /* Drop zone */
 .drop-zone { border: 2px dashed #2a2a4a; border-radius: 8px; padding: 32px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; min-height: 120px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px; }
-.drop-zone:hover, .drop-zone.dragover { border-color: #8bb4ff; background: rgba(139,180,255,0.05); }
+.drop-zone:hover, .drop-zone.dragover { border-color: #c4a0ff; background: rgba(196,160,255,0.05); }
 .drop-zone img { max-width: 100%; max-height: 200px; border-radius: 4px; }
 .drop-zone input { display: none; }
 .drop-zone .placeholder { color: #555; font-size: 0.85rem; }
@@ -35,19 +41,19 @@ h1 .nav a:hover { color: #8bb4ff; }
 .row .field { flex: 1; }
 
 /* API settings */
-.api-settings { background: #0d1b2a; border: 1px solid #2a2a4a; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
-.api-settings summary { cursor: pointer; color: #8bb4ff; font-size: 0.85rem; }
+.api-settings { background: #0d0b1a; border: 1px solid #2a2a4a; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+.api-settings summary { cursor: pointer; color: #c4a0ff; font-size: 0.85rem; }
 .api-settings .fields { margin-top: 12px; display: flex; gap: 12px; }
-.api-settings input { flex: 1; padding: 8px; background: #16213e; border: 1px solid #2a2a4a; border-radius: 6px; color: #e0e0e0; font-size: 0.85rem; }
+.api-settings input { flex: 1; padding: 8px; background: #1e1a2e; border: 1px solid #2a2a4a; border-radius: 6px; color: #e0e0e0; font-size: 0.85rem; }
 
 /* Button */
-.submit-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #4a6fa5, #8bb4ff); border: none; border-radius: 8px; color: #fff; font-size: 1rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+.submit-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #6a4fa5, #c4a0ff); border: none; border-radius: 8px; color: #fff; font-size: 1rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
 .submit-btn:hover { opacity: 0.9; }
 .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* Log */
-.log-area { margin-top: 24px; background: #0d1b2a; border: 1px solid #2a2a4a; border-radius: 8px; padding: 16px; display: none; }
-.log-area h3 { font-size: 0.85rem; color: #8bb4ff; margin-bottom: 8px; }
+.log-area { margin-top: 24px; background: #0d0b1a; border: 1px solid #2a2a4a; border-radius: 8px; padding: 16px; display: none; }
+.log-area h3 { font-size: 0.85rem; color: #c4a0ff; margin-bottom: 8px; }
 .log-area .log { font-family: 'SF Mono', Monaco, monospace; font-size: 0.8rem; color: #aaa; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
 .log .error { color: #ff6b6b; }
 .log .success { color: #6bff9e; }
@@ -59,13 +65,15 @@ h1 .nav a:hover { color: #8bb4ff; }
 
 /* Footer */
 footer { margin-top: 48px; padding: 24px 0; border-top: 1px solid #2a2a4a; text-align: center; font-size: 0.8rem; color: #666; }
-footer a { color: #8bb4ff; text-decoration: none; }
+footer a { color: #c4a0ff; text-decoration: none; }
 footer a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>SKY — Image Generator <span class="nav"><a href="index.html">Video</a> <a href="dream.html">Dream</a></span></h1>
+  <h1>SKY — Dream Generator
+    <span class="nav"><a href="index.html">Video</a> <a href="image.html">Image</a></span>
+  </h1>
 
   <details class="api-settings" id="apiSettings">
     <summary>API Settings</summary>
@@ -77,55 +85,80 @@ footer a:hover { text-decoration: underline; }
     </div>
   </details>
 
-  <div class="panel">
+  <div class="tabs">
+    <div class="tab active" data-tab="txt2img">txt2img（テキスト→画像）</div>
+    <div class="tab" data-tab="edit">edit（画像編集）</div>
+  </div>
+
+  <!-- txt2img Panel -->
+  <div class="panel active" id="panel-txt2img">
     <div class="field">
-      <label for="file-ref">参照画像</label>
-      <div class="drop-zone" id="drop-ref">
-        <input type="file" id="file-ref" accept="image/*">
-        <span class="placeholder">クリックまたはドラッグ＆ドロップで参照画像を選択</span>
-      </div>
+      <label for="prompt-txt2img">プロンプト</label>
+      <textarea id="prompt-txt2img" placeholder="a serene mountain landscape at sunset, oil painting style..."></textarea>
     </div>
     <div class="field">
-      <label for="prompt">プロンプト</label>
-      <textarea id="prompt" placeholder="a beautiful portrait in watercolor style..."></textarea>
-    </div>
-    <div class="field">
-      <label for="negative">ネガティブプロンプト</label>
-      <textarea id="negative" placeholder="lowres, bad anatomy, blurry..."></textarea>
+      <label for="negative-txt2img">ネガティブプロンプト</label>
+      <textarea id="negative-txt2img" placeholder="lowres, bad anatomy, blurry..."></textarea>
     </div>
     <div class="row">
       <div class="field">
-        <label for="width">幅</label>
-        <input type="text" id="width" value="1024">
+        <label for="width-txt2img">幅</label>
+        <input type="text" id="width-txt2img" value="1024">
       </div>
       <div class="field">
-        <label for="height">高さ</label>
-        <input type="text" id="height" value="1024">
+        <label for="height-txt2img">高さ</label>
+        <input type="text" id="height-txt2img" value="1024">
       </div>
       <div class="field">
-        <label for="steps">ステップ数</label>
-        <input type="text" id="steps" value="20">
+        <label for="steps-txt2img">ステップ数</label>
+        <input type="text" id="steps-txt2img" value="28">
       </div>
       <div class="field">
-        <label for="seed">シード</label>
-        <input type="text" id="seed" value="42">
+        <label for="seed-txt2img">シード</label>
+        <input type="text" id="seed-txt2img" value="42">
       </div>
     </div>
     <div class="row">
       <div class="field">
-        <label for="guidance">ガイダンス: <span id="guidance-val">3.5</span></label>
-        <input type="range" id="guidance" min="0" max="10" step="0.5" value="3.5">
-      </div>
-      <div class="field">
-        <label for="ip-weight">IP-Adapter重み: <span id="ip-weight-val">0.8</span></label>
-        <input type="range" id="ip-weight" min="0" max="2" step="0.1" value="0.8">
-      </div>
-      <div class="field">
-        <label for="quality">JPEG品質: <span id="quality-val">90</span></label>
-        <input type="range" id="quality" min="1" max="100" value="90">
+        <label for="quality-txt2img">JPEG品質: <span id="quality-txt2img-val">90</span></label>
+        <input type="range" id="quality-txt2img" min="1" max="100" value="90">
       </div>
     </div>
-    <button class="submit-btn" id="submitBtn">生成開始</button>
+    <button class="submit-btn" onclick="submitJob('txt2img')">生成開始</button>
+  </div>
+
+  <!-- edit Panel -->
+  <div class="panel" id="panel-edit">
+    <div class="field">
+      <label for="file-edit">編集元画像</label>
+      <div class="drop-zone" id="drop-edit">
+        <input type="file" id="file-edit" accept="image/*">
+        <span class="placeholder">クリックまたはドラッグ＆ドロップで画像を選択</span>
+      </div>
+    </div>
+    <div class="field">
+      <label for="prompt-edit">編集指示</label>
+      <textarea id="prompt-edit" placeholder="remove the sunglasses / make it a watercolor painting / change the background to a beach..."></textarea>
+    </div>
+    <div class="field">
+      <label for="negative-edit">ネガティブプロンプト</label>
+      <textarea id="negative-edit" placeholder="lowres, bad anatomy, blurry..."></textarea>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="steps-edit">ステップ数</label>
+        <input type="text" id="steps-edit" value="20">
+      </div>
+      <div class="field">
+        <label for="seed-edit">シード</label>
+        <input type="text" id="seed-edit" value="42">
+      </div>
+      <div class="field">
+        <label for="quality-edit">JPEG品質: <span id="quality-edit-val">90</span></label>
+        <input type="range" id="quality-edit" min="1" max="100" value="90">
+      </div>
+    </div>
+    <button class="submit-btn" onclick="submitJob('edit')">編集開始</button>
   </div>
 
   <div class="log-area" id="logArea">
@@ -143,19 +176,19 @@ footer a:hover { text-decoration: underline; }
     <p>
       <a href="https://github.com/bizendao/sky" target="_blank" rel="noopener noreferrer">GitHub</a>
       &nbsp;|&nbsp;
-      <a href="https://github.com/bizendao/generate_image" target="_blank" rel="noopener noreferrer">generate_image</a>
+      <a href="https://github.com/bizendao/generate_dream" target="_blank" rel="noopener noreferrer">generate_dream</a>
     </p>
   </footer>
 </div>
 
 <script>
 // --- State ---
-let refImage = null;
+let editImage = null;
 let polling = null;
 
-// --- API settings persistence (shared with video UI) ---
+// --- API settings persistence ---
 function loadSettings() {
-  const s = localStorage.getItem('sky_api_image');
+  const s = localStorage.getItem('sky_api_dream');
   if (s) {
     const d = JSON.parse(s);
     document.getElementById('endpointId').value = d.e || '';
@@ -163,7 +196,7 @@ function loadSettings() {
   }
 }
 function saveSettings() {
-  localStorage.setItem('sky_api_image', JSON.stringify({
+  localStorage.setItem('sky_api_dream', JSON.stringify({
     e: document.getElementById('endpointId').value,
     k: document.getElementById('apiKey').value
   }));
@@ -171,6 +204,16 @@ function saveSettings() {
 document.getElementById('endpointId').addEventListener('change', saveSettings);
 document.getElementById('apiKey').addEventListener('change', saveSettings);
 loadSettings();
+
+// --- Tabs ---
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+  });
+});
 
 // --- Range sliders ---
 document.querySelectorAll('input[type="range"]').forEach(r => {
@@ -181,8 +224,8 @@ document.querySelectorAll('input[type="range"]').forEach(r => {
 });
 
 // --- Drop zone ---
-const zone = document.getElementById('drop-ref');
-const fileInput = document.getElementById('file-ref');
+const zone = document.getElementById('drop-edit');
+const fileInput = document.getElementById('file-edit');
 
 zone.addEventListener('click', () => fileInput.click());
 zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
@@ -199,7 +242,7 @@ fileInput.addEventListener('change', () => {
 function handleFile(file) {
   const reader = new FileReader();
   reader.onload = e => {
-    refImage = e.target.result.split(',')[1];
+    editImage = e.target.result.split(',')[1];
     zone.innerHTML = `<img src="${e.target.result}">`;
   };
   reader.readAsDataURL(file);
@@ -219,7 +262,7 @@ function log(msg, cls) {
 }
 
 // --- Submit ---
-document.getElementById('submitBtn').addEventListener('click', async () => {
+async function submitJob(mode) {
   const endpointId = document.getElementById('endpointId').value.trim();
   const apiKey = document.getElementById('apiKey').value.trim();
   if (!endpointId || !apiKey) {
@@ -227,34 +270,41 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
     alert('API Settings を入力してください');
     return;
   }
-  if (!refImage) {
-    alert('参照画像を選択してください');
-    return;
-  }
 
-  const prompt = document.getElementById('prompt').value.trim();
+  const prompt = document.getElementById('prompt-' + mode).value.trim();
   if (!prompt) { alert('プロンプトを入力してください'); return; }
 
-  const inputData = {
-    prompt,
-    negative_prompt: document.getElementById('negative').value.trim() || undefined,
-    image_base64: refImage,
-    width: parseInt(document.getElementById('width').value),
-    height: parseInt(document.getElementById('height').value),
-    steps: parseInt(document.getElementById('steps').value),
-    seed: parseInt(document.getElementById('seed').value),
-    guidance: parseFloat(document.getElementById('guidance').value),
-    ip_adapter_weight: parseFloat(document.getElementById('ip-weight').value),
-    quality: parseInt(document.getElementById('quality').value)
-  };
+  let inputData;
+
+  if (mode === 'txt2img') {
+    inputData = {
+      prompt,
+      negative_prompt: document.getElementById('negative-txt2img').value.trim() || undefined,
+      width: parseInt(document.getElementById('width-txt2img').value),
+      height: parseInt(document.getElementById('height-txt2img').value),
+      steps: parseInt(document.getElementById('steps-txt2img').value),
+      seed: parseInt(document.getElementById('seed-txt2img').value),
+      quality: parseInt(document.getElementById('quality-txt2img').value)
+    };
+    log(`txt2img: ${inputData.width}x${inputData.height}, steps=${inputData.steps}`);
+  } else {
+    if (!editImage) { alert('編集元画像を選択してください'); return; }
+    inputData = {
+      prompt,
+      negative_prompt: document.getElementById('negative-edit').value.trim() || undefined,
+      image_base64: editImage,
+      steps: parseInt(document.getElementById('steps-edit').value),
+      seed: parseInt(document.getElementById('seed-edit').value),
+      quality: parseInt(document.getElementById('quality-edit').value)
+    };
+    log(`edit: steps=${inputData.steps}`);
+  }
 
   const apiUrl = `https://api.runpod.ai/v2/${endpointId}`;
-  const btn = document.getElementById('submitBtn');
+  const btn = document.querySelector('#panel-' + mode + ' .submit-btn');
   btn.disabled = true;
   btn.textContent = '送信中...';
   document.getElementById('resultArea').style.display = 'none';
-
-  log(`${inputData.width}x${inputData.height}, steps=${inputData.steps}, guidance=${inputData.guidance}, ip_weight=${inputData.ip_adapter_weight}`);
 
   try {
     log('ジョブを投入中...');
@@ -267,20 +317,20 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
 
     if (!data.id) {
       log('エラー: ジョブIDを取得できませんでした — ' + JSON.stringify(data), 'error');
-      btn.disabled = false; btn.textContent = '生成開始';
+      btn.disabled = false; btn.textContent = mode === 'txt2img' ? '生成開始' : '編集開始';
       return;
     }
 
     log('ジョブID: ' + data.id);
-    pollStatus(apiUrl, apiKey, data.id, btn);
+    pollStatus(apiUrl, apiKey, data.id, btn, mode);
   } catch (e) {
     log('リクエストエラー: ' + e.message, 'error');
-    btn.disabled = false; btn.textContent = '生成開始';
+    btn.disabled = false; btn.textContent = mode === 'txt2img' ? '生成開始' : '編集開始';
   }
-});
+}
 
 // --- Poll ---
-function pollStatus(apiUrl, apiKey, jobId, btn) {
+function pollStatus(apiUrl, apiKey, jobId, btn, mode) {
   if (polling) clearInterval(polling);
   log('完了を待機中...');
 
@@ -294,13 +344,13 @@ function pollStatus(apiUrl, apiKey, jobId, btn) {
 
       if (data.status === 'COMPLETED') {
         clearInterval(polling);
-        log(`完了! 実行時間: ${data.executionTime}ms`, 'success');
+        log(`完了! 実行時間: ${data.executionTime}ms (mode: ${data.output.mode})`, 'success');
         showImage(data.output.image);
-        btn.disabled = false; btn.textContent = '生成開始';
+        btn.disabled = false; btn.textContent = mode === 'txt2img' ? '生成開始' : '編集開始';
       } else if (data.status === 'FAILED') {
         clearInterval(polling);
         log('ジョブ失敗: ' + JSON.stringify(data.error), 'error');
-        btn.disabled = false; btn.textContent = '生成開始';
+        btn.disabled = false; btn.textContent = mode === 'txt2img' ? '生成開始' : '編集開始';
       }
     } catch (e) {
       log('ポーリングエラー: ' + e.message, 'error');
@@ -318,10 +368,9 @@ function showImage(dataUrl) {
   dl.href = dataUrl;
   area.style.display = 'block';
 
-  // 自動ダウンロード
   const a = document.createElement('a');
   a.href = dataUrl;
-  a.download = 'output_' + new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19) + '.jpg';
+  a.download = 'dream_' + new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19) + '.jpg';
   a.click();
 }
 </script>
